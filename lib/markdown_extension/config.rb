@@ -42,5 +42,11 @@ module MarkdownExtension
                 return @raw_config["preprocessing"]
             end
         end
+
+        def giscus
+            if @raw_config
+                return @raw_config["giscus"]
+            end
+        end
     end
 end
