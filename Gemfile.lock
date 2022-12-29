@@ -1,0 +1,15 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    liquid (5.4.0)
+    tomlrb (2.0.3)
+
+PLATFORMS
+  x86_64-linux
+
+DEPENDENCIES
+  liquid
+  tomlrb
+
+BUNDLED WITH
+   2.3.26
