@@ -2,12 +2,14 @@ require "json"
 
 module MarkdownExtension
     class Site
-        attr_accessor :config, :summary, :pages, :references, :reverse_references
+        attr_accessor :config, :summary, :pages, :journals, :references, :reverse_references
         attr_accessor :nodes, :links
 
         def initialize(config, type)
             @config = MarkdownExtension::Config.new(config, type)
-            @summary = MarkdownExtension::Summary.new(@config)
+            unless type == :logseq
+                @summary = MarkdownExtension::Summary.new(@config)
+            end
             @references = {}
             @reverse_references = {}
             @nodes = []
@@ -18,12 +20,23 @@ module MarkdownExtension
 
         def load_source_files
             @pages = []
+            @journals = []
             if @config
-                files = Dir.glob(@config.src + "/*.md")
-                files.each do |file|
-                    unless file == @config.src + "/summary.md"                        
+                if @config.type == :logseq
+                    journal_files = Dir.glob(@config.journals + "/*.md")
+                    journal_files.each do |file|
                         page = MarkdownExtension::Page.new(file, self)
-                        pages << page
+                        @journals << page
+                    end
+                    pages_path = @config.pages
+                else
+                    pages_path = @config.src
+                end
+                files = Dir.glob(pages_path + "/*.md")
+                files.each do |file|
+                    unless file == @config.pages + "/summary.md"
+                        page = MarkdownExtension::Page.new(file, self)
+                        @pages << page
                         gen_references(file , page.markdown)
                     end
                 end
@@ -31,7 +44,7 @@ module MarkdownExtension
         end
 
         def gen_references(file, text)
-            text.gsub(/\[\[(.*)\]\]/) do |s|
+            text.gsub(/\[\[([^\]]+)\]\]/) do |s|
                 s = s[2..-3]
                 item_name = file.split("/")[-1].gsub(".md","")
                 if @references[s]

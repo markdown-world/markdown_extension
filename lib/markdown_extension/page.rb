@@ -18,14 +18,34 @@ module MarkdownExtension
                 @meta = mds[1]
                 @markdown = mds[2..-1].join("---\n")
             end
+            if @site.config.type == :logseq
+                @markdown.gsub!(/\t/, "    ")
+                if @markdown[-1]=="-"
+                    @markdown = @markdown[0..-2]
+                end
+                @markdown.gsub!(/(.+)collapsed:: true\n/, "")
+                @markdown = @markdown.gsub(/.+(- )[0-9]+\./) do |s|
+                    s.gsub("- ","")
+                end
+                while (i = @markdown.index(":LOGBOOK:")) do 
+                    j = @markdown.index(":END:", i)
+                    @markdown=@markdown[0..i-4] + @markdown[j+5..-1]
+                end
+            end
             @item_name = file.split("/")[-1].gsub(".md","")
         end
 
         def pre_processing
             if @site.config.preprocessing["backlinks"]
-                @markdown = @markdown.gsub(/\[\[(.*)\]\]/) do |s| 
-                    s = s[2..-3]
-                    "[#{s}](#{s}.html)"
+                @markdown = @markdown.gsub(/\[\[([^\]]+)\]\]/) do |s|
+                    index = @markdown.index(s)
+                    if (@markdown[index-1]=="(" && @markdown[index+s.size]==")")
+                        s = s[2..-3]
+                        "#{s}.html"
+                    else
+                        s = s[2..-3]
+                        "[#{s}](#{s}.html)"
+                    end
                 end
                 if @site.references[@item_name]
                     @markdown += "\n\n\n"
