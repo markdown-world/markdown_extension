@@ -1,3 +1,3 @@
 module MarkdownExtension
-  Version = '0.0.9'
+  Version = '0.1.3'
 end

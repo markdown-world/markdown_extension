@@ -3,10 +3,11 @@ require "json"
 module MarkdownExtension
     class Site
         attr_accessor :config, :summary, :pages, :journals, :references, :reverse_references
-        attr_accessor :nodes, :links
+        attr_accessor :nodes, :links, :citations
 
         def initialize(config, type)
             @config = MarkdownExtension::Config.new(config, type)
+            @citations = MarkdownExtension::Citations.new(@config, type)
             unless type == :logseq
                 @summary = MarkdownExtension::Summary.new(@config)
             end
@@ -34,10 +35,19 @@ module MarkdownExtension
                 end
                 files = Dir.glob(pages_path + "/*.md")
                 files.each do |file|
-                    unless file == @config.pages + "/summary.md"
-                        page = MarkdownExtension::Page.new(file, self)
-                        @pages << page
-                        gen_references(file , page.markdown)
+                    unless file == pages_path + "/summary.md"
+                        if file.index("hls_")
+                            @citations.add_inner_citation(file)
+                        end
+                    end
+                end
+                files.each do |file|
+                    unless file == pages_path + "/summary.md"
+                        unless file.index("hls_")
+                            page = MarkdownExtension::Page.new(file, self)
+                            @pages << page
+                            gen_references(file , page.markdown)
+                        end
                     end
                 end
             end
@@ -62,18 +72,22 @@ module MarkdownExtension
 
         def gen_nodes_links
             @references.each do |k,v|
+                val = @references[k] ? @references[k].size+1 : 1
+                val = 5 if val > 5
                 @nodes << {
                     "id" => k,
                     "name" => k,
                     "color" => "blue",
-                    "val" => @reverse_references[k] ? @reverse_references[k].size+1 : 1
+                    "val" => val
                 }
                 v.each do |item|
+                    val = @references[item] ? @references[item].size+1 : 1
+                    val = 5 if val > 5
                     @nodes << {
                         "id" => item,
                         "name" => item,    
                         "color" => "blue",
-                        "val" => @reverse_references[item] ? @reverse_references[item].size+1 : 1
+                        "val" => val
                     }
                     @links << {
                         "source" => item,

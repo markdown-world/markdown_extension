@@ -55,5 +55,11 @@ module MarkdownExtension
                 return @raw_config["giscus"]
             end
         end
+
+        def citation
+            if @raw_config
+                return @raw_config["citation"]
+            end
+        end
     end
 end

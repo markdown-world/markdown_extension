@@ -4,7 +4,7 @@ require "tomlrb"
 
 module MarkdownExtension
     class Page
-        attr_accessor :site, :markdown, :meta, :item_name
+        attr_accessor :site, :markdown, :meta, :item_name, :ctime, :mtime
 
         def initialize(file, site)
             @site = site
@@ -18,21 +18,9 @@ module MarkdownExtension
                 @meta = mds[1]
                 @markdown = mds[2..-1].join("---\n")
             end
-            if @site.config.type == :logseq
-                @markdown.gsub!(/\t/, "    ")
-                if @markdown[-1]=="-"
-                    @markdown = @markdown[0..-2]
-                end
-                @markdown.gsub!(/(.+)collapsed:: true\n/, "")
-                @markdown = @markdown.gsub(/.+(- )[0-9]+\./) do |s|
-                    s.gsub("- ","")
-                end
-                while (i = @markdown.index(":LOGBOOK:")) do 
-                    j = @markdown.index(":END:", i)
-                    @markdown=@markdown[0..i-4] + @markdown[j+5..-1]
-                end
-            end
             @item_name = file.split("/")[-1].gsub(".md","")
+            @ctime = File::ctime(file)
+            @mtime = File::mtime(file)
         end
 
         def pre_processing
@@ -53,6 +41,29 @@ module MarkdownExtension
                     @site.references[@item_name].each do |item|
                         @markdown += "* [#{item}](#{item}.html)\n"
                     end
+                end
+            end
+            if @site.config.type == :logseq
+                @markdown.gsub!(/\t/, "    ")
+                if @markdown[-1]=="-"
+                    @markdown = @markdown[0..-2]
+                end
+                @markdown.gsub!("(../assets/", "(./assets/")
+                @markdown.gsub!(/(.+)collapsed:: true\n/, "")
+                @markdown = @markdown.gsub(/.+([0-9]+\. )/) do |s|
+                    s.gsub(".","．")
+                end
+                while (i = @markdown.index(":LOGBOOK:")) do 
+                    j = @markdown.index(":END:", i)
+                    @markdown=@markdown[0..i-4] + @markdown[j+5..-1]
+                end
+                @markdown = @markdown.gsub(/\(\([^\)]+\)\)/) do |s|
+                    if s.index(":")
+                        id = s
+                    else
+                        id = s[2..-3]                        
+                    end
+                    @site.citations.get_inner_citation(id)
                 end
             end
         end
