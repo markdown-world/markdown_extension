@@ -38,6 +38,8 @@ module MarkdownExtension
                     unless file == pages_path + "/summary.md"
                         if file.index("hls_")
                             @citations.add_inner_citation(file)
+                        else
+                            @citations.add_embed_citation(file)
                         end
                     end
                 end

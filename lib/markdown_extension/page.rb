@@ -57,6 +57,10 @@ module MarkdownExtension
                     j = @markdown.index(":END:", i)
                     @markdown=@markdown[0..i-4] + @markdown[j+5..-1]
                 end
+                @markdown = @markdown.gsub(/{{embed \(\(([^\)]+)\)\)}}/) do |s|
+                    id = s[10..-5]
+                    "embed #{id}: \n" + @site.citations.get_inner_citation(id)
+                end
                 @markdown = @markdown.gsub(/\(\([^\)]+\)\)/) do |s|
                     if s.index(":")
                         id = s

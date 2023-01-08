@@ -4,7 +4,7 @@ module MarkdownExtension
         def initialize(config, type)
             @config = config
             @type = type
-            @inner_citations = {}            
+            @inner_citations = {}
             if config.citation
                 init_citation()
             end
@@ -25,7 +25,37 @@ module MarkdownExtension
                     @inner_citations[id] = "P#{page_no} #{content}"
                     i = i + 4
                 end
-            end            
+            end
+        end
+
+        def add_embed_citation(file)
+            text = File.read(file)
+            text.gsub!("\t", "    ")
+            temp_id = ""
+            temp_context = ""
+            prev_line = ""
+            space = 0
+            if text.index("id:: ")
+                text.split("\n").each do |line|
+                    if temp_space = line.index("id:: ")
+                        temp_id = line.split("id:: ")[1]
+                        temp_context = prev_line + "\n"
+                        space = temp_space
+                        next
+                    end
+                    if line.strip == "collapsed:: true"
+                        next
+                    end
+                    if line.length - line.lstrip.length > space
+                        temp_context = temp_context + line + "\n"
+                    else
+                        unless temp_id==""
+                            @inner_citations[temp_id] = temp_context
+                        end
+                    end
+                    prev_line = line
+                end
+            end
         end
 
         def get_inner_citation(id)
