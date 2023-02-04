@@ -7,7 +7,7 @@ module MarkdownExtension
         def initialize(config)
             @config = config
             file = config.src+"/summary.md"
-            if File.exists?(file)
+            if File.exist?(file)
                 @markdown = File.read(file)
             else
                 @markdown = ""

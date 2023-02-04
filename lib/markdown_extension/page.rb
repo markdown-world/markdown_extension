@@ -8,7 +8,7 @@ module MarkdownExtension
 
         def initialize(file, site)
             @site = site
-            if File.exists?(file)
+            if File.exist?(file)
                 @markdown = File.read(file)
             else
                 @markdown = ""
@@ -49,7 +49,7 @@ module MarkdownExtension
                     @markdown = @markdown[0..-2]
                 end
                 @markdown.gsub!("(../assets/", "(./assets/")
-                @markdown.gsub!(/(.+)collapsed:: true\n/, "")
+                # @markdown.gsub!(/(.+)collapsed:: true\n/, "")
                 @markdown = @markdown.gsub(/.+([0-9]+\. )/) do |s|
                     s.gsub(".","．")
                 end
