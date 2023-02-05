@@ -69,6 +69,9 @@ module MarkdownExtension
                     end
                     @site.citations.get_inner_citation(id)
                 end
+                @markdown = @markdown.split("\n").collect {|line|
+                    (line.strip.index("id:: ") && line.strip.length==41)? nil : line                    
+                }.compact.join("\n")
             end
         end
 
