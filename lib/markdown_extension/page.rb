@@ -4,9 +4,9 @@ require "tomlrb"
 
 module MarkdownExtension
     class Page
-        attr_accessor :site, :markdown, :meta, :item_name, :ctime, :mtime
+        attr_accessor :site, :markdown, :meta, :path, :item_name, :ctime, :mtime
 
-        def initialize(file, site)
+        def initialize(file, site, lang=nil)
             @site = site
             if File.exist?(file)
                 @markdown = File.read(file)
@@ -18,6 +18,7 @@ module MarkdownExtension
                 @meta = mds[1]
                 @markdown = mds[2..-1].join("---\n")
             end
+            @path = file.gsub(site.config.src+lang+"/","").gsub(".md","")
             @item_name = file.split("/")[-1].gsub(".md","")
             @ctime = File::ctime(file)
             @mtime = File::mtime(file)
