@@ -18,7 +18,7 @@ module MarkdownExtension
                 @meta = mds[1]
                 @markdown = mds[2..-1].join("---\n")
             end
-            @path = file.gsub(site.config.src+lang+"/","").gsub(".md","")
+            @path = file.gsub(site.pages_path+lang.to_s+"/","").gsub(".md","")
             @item_name = file.split("/")[-1].gsub(".md","")
             @ctime = File::ctime(file)
             @mtime = File::mtime(file)
@@ -56,7 +56,10 @@ module MarkdownExtension
                 end
                 while (i = @markdown.index(":LOGBOOK:")) do 
                     j = @markdown.index(":END:", i)
-                    @markdown=@markdown[0..i-4] + @markdown[j+5..-1]
+                    while(@markdown[i]!="\n") do
+                        i = i - 1
+                    end
+                    @markdown=@markdown[0..i-1] + @markdown[j+5..-1]
                 end
                 @markdown = @markdown.gsub(/{{embed \(\(([^\)]+)\)\)}}/) do |s|
                     id = s[10..-5]
@@ -83,6 +86,7 @@ module MarkdownExtension
         end
 
         def meta_html
+            return nil unless @meta
             meta_data = Tomlrb.parse(@meta)
             html = ""
             meta_data.each do |title, values|
